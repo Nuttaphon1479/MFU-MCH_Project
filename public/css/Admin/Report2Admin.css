@@ -1,0 +1,380 @@
+body {
+    margin: 0;
+    padding: 0;
+
+}
+
+.container-fluid {
+    margin: 0;
+    padding: 0;
+}
+
+/* ==============Menu-toggle============== */
+.header-container {
+    display: flex;
+    justify-content: flex-start;
+    margin-left: 50px;
+}
+
+/* ==============menu-bar=================== */
+.menu-toggle {
+    padding-top: 50px;
+    cursor: pointer;
+    /* เปลี่ยนเคอร์เซอร์เมาส์ ให้คลิกได้ */
+}
+
+.bar1,
+.bar2,
+.bar3 {
+    background-color: #970c10;
+}
+
+.menu-toggle div {
+    width: 35px;
+    height: 4px;
+    background-color: #0a0a00;
+    margin: 6px 0;
+}
+
+.menu-toggle:hover div {
+    background-color: #ff151c;
+    /* สีที่จะเปลี่ยนเมื่อ hover */
+}
+
+/* =================logo================= */
+.logo-container {
+    margin-left: 40px;
+    padding-top: 15px;
+}
+
+/* ==================Drop down (user) =========== */
+.profile-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 10px;
+    gap: 10px;
+    /* เพิ่มระยะห่างระหว่างองค์ประกอบ */
+}
+
+.profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.profile-info {
+    text-align: right;
+}
+
+.profile-id {
+    font-size: 0.8rem;
+    color: #b02431;
+    /* สีตามตัวอย่าง */
+    margin-bottom: -5px;
+    /* ขยับให้บรรทัดชิดกัน */
+}
+
+.profile-name {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.dropdown-menu {
+    right: auto;
+    left: 0;
+    min-width: 200px;
+    /* กำหนดความกว้างของเมนู */
+}
+
+.dropdown-item i {
+    margin-right: 10px;
+    /* เพิ่มระยะห่างระหว่างไอคอนกับข้อความ */
+}
+
+.dropdown-item:hover {
+    background-color: #db6b6e;
+    color: white;
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.btn {
+    border: none;
+    background-color: #ffffff;
+}
+
+.flex-container {
+    display: flex;
+    /* ใช้ Flexbox layout */
+    /* height: calc(100vh - 120px); */
+    height: auto;
+    /* ความสูงของ flex container */
+    overflow: hidden;
+    /* ป้องกันการเลื่อนที่ไม่ต้องการ */
+}
+
+/* =============Sidebar================== */
+.sidebar {
+    align-items: center;
+    /* จัดตำแหน่งแนวตั้ง */
+    width: 380px;
+    /* ปรับขนาด Sidebar */
+    background-color: #970c10;
+    padding-top: 20px;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    /* ให้ Sidebar อยู่เหนือเนื้อหาอื่น */
+}
+
+.sidebar.show {
+    transform: translateX(0);
+}
+
+.sidebar a {
+    display: flex;
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #fff;
+    font-size: 25px;
+    align-items: center;
+    margin-bottom: 10px;
+    /* เพิ่มช่องว่างระหว่างลิงก์แต่ละบรรทัด */
+}
+
+/* เมื่อเลื่อนเมาส์ไปที่ลิงก์ใน Sidebar */
+.sidebar a:hover {
+    background-color: #db6b6e;
+    /* เปลี่ยนสีพื้นหลังเมื่อ Hover */
+    color: #fff;
+    /* เปลี่ยนสีตัวอักษรเมื่อ Hover */
+    margin: 10px;
+    border-radius: 15px;
+    border: 1px solid #0a0a00;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* ขยับเฉพาะ text ให้ห่างจาก icon */
+.sidebar a .sidebar-text {
+    flex-grow: 1;
+    /* ขยับ text ไปทางขวาสุด */
+    margin-left: 25px;
+    /* ระยะห่างจากไอคอน */
+    text-align: left;
+}
+
+/* Sidebar เมื่อย่อ */
+.sidebar.collapsed {
+    width: 0 0 80px;
+    /* ปรับความกว้างของ Sidebar */
+}
+
+.sidebar.collapsed .sidebar-text {
+    display: none;
+    /* ซ่อนข้อความเมื่อ Sidebar ถูกย่อ */
+}
+
+.sidebar.collapsed a {
+    justify-content: center;
+    /* จัดไอคอนให้อยู่ตรงกลางในแนวราบ */
+}
+
+.sidebar.collapsed a i {
+    font-size: 30px;
+    /* ขนาดไอคอนใหญ่ขึ้นเล็กน้อย */
+    margin: 0;
+    /* เอาระยะห่างออกเพื่อจัดให้อยู่ตรงกลาง */
+}
+
+/* ===============Main Content================= */
+.main-content {
+    padding: 20px;
+    transition: all 0.3s ease;
+    background-color: #dbdbdb;
+    /* กำหนดสีพื้นหลัง */
+    flex: 1;
+    /* ขยายให้เต็มพื้นที่ที่เหลือ */
+}
+
+.sidebar.collapsed~.main-content {
+    margin-left: 80px;
+    /* ปรับ margin-left ให้เหมาะสมเมื่อ Sidebar ถูกยุบ */
+}
+
+.main-content.shifted {
+    margin-left: 100px;
+}
+
+/* ========= A4 page ========== */
+.a4-page {
+    width: 210mm;
+    height: 297mm;
+    margin: auto;
+    background: white;
+    /* A4 padding*/
+    padding: 5mm;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow: visible;
+    page-break-after: always;
+    /* overflow-y: scroll; */
+}
+
+/* ทำให้ขนาด A4 พอดีกับการพิมพ์ */
+@media print {
+
+    /* Hide elements outside the .a4-page during printing */
+    body * {
+        visibility: hidden;
+    }
+
+    .a4-page,
+    .a4-page * {
+        visibility: visible;
+    }
+
+    .a4-page {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 210mm;
+        /* Full width of A4 */
+        height: 297mm;
+        /* Full height of A4 */
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        page-break-after: always;
+    }
+
+    .custom-table1,
+    .custom-table2,
+    .custom-table3,
+    .custom-table4 {
+        width: 100% !important;
+        /* Force full width */
+        border-collapse: collapse;
+        font-size: 11px;
+        table-layout: fixed;
+    }
+
+    .custom-table1 td,
+    .custom-table2 td,
+    .custom-table3 td,
+    .custom-table4 td {
+        padding: 5px;
+    }
+
+    .print-icon {
+        display: none;
+        /* Hide print icon when printing */
+    }
+}
+
+
+
+/* ========== เนื้อหารายงาน ========== */
+/* table 1 */
+.custom-table1 {
+    width: 100%;
+    border: 1px solid black;
+    border-collapse: collapse;
+    font-size: 11px;
+    table-layout: fixed;
+}
+
+.custom-table1 td {
+    border: 1px solid black;
+    padding: 5px;
+    text-align: left;
+}
+
+/* line top of table */
+.border-bottom-custom {
+    border-bottom: 1px solid black;
+}
+
+/* table 2 */
+.custom-table2 {
+    width: 100%;
+    border: 1px solid black;
+    border-collapse: collapse;
+    font-size: 11px;
+    table-layout: fixed;
+}
+
+.custom-table2 td {
+    padding: 5px;
+    text-align: left;
+}
+
+
+/* table 3 */
+.custom-table3 {
+    width: 100%;
+    border: 1px solid black;
+    border-collapse: collapse;
+    font-size: 11px;
+    table-layout: fixed;
+}
+
+.custom-table3 td {
+    padding: 5px;
+    text-align: left;
+}
+
+/* table 4 */
+.custom-table4 {
+    width: 100%;
+    border: 1px solid black;
+    border-collapse: collapse;
+    font-size: 11px;
+    table-layout: fixed;
+}
+
+.custom-table4 td {
+    padding: 5px;
+    text-align: left;
+    border: 1px solid black;
+    ;
+}
+
+.text-align {
+    text-align: center;
+}
+
+.print-icon {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 36px;
+    cursor: pointer;
+    color: black;
+    z-index: 1000;
+    /* Ensure the icon is on top */
+}
+
+.print-icon:hover {
+    color: rgb(130, 130, 130);
+}
+
+/* Media Query: ย่อ Sidebar เมื่อหน้าจอแคบ */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 80px;
+        /* ย่อ Sidebar ให้เหลือไอคอนอย่างเดียว */
+        /* ขนาด Sidebar ที่แคบลง */
+    }
+
+    .sidebar .sidebar-text {
+        display: none;
+        /* ซ่อนข้อความใน Sidebar */
+    }
+
+    .main-content {
+        margin-left: 80px;
+        /* ปรับ margin-left ให้เหมาะสมเมื่อ Sidebar แคบลง */
+    }
+}

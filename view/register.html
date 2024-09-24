@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/public/css/register.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="image-section">
+            <img class="mb-40" height="800" src="/public/img/MFU_MCH.png" alt="Image of a hospital building"
+                width="600">
+        </div>
+        <div class="form-section">
+            <div class="form-container">
+                <h2>ชื่อผู้ใช้งาน</h2>
+                <input type="text" placeholder="ขื่อผู้ใช้งาน">
+                <h2>ID พนักงาน</h2>
+                <input type="password" placeholder="ID">
+                <h2>Password</h2>
+                <input type="password" placeholder="Password">
+                <h2>Re-Password</h2>
+                <input type="password" placeholder="Re-password">
+                <button type="submit" class="btn btn-danger" id="btn_Register">ลงทะเบียนเข้าใช้งาน</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        const formRegis = document.querySelector('#regis');
+        formRegis.onsubmit = async function (e) {
+            e.preventDefault();
+            const name = formRegis['name'].value;
+            const user_id = formRegis['user_id'].value;
+            const password = formRegis['password'].value;
+            const repassword = formRegis['repassword'].value;
+
+            try {
+                const options = {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ "name": name, "user_id": user_id, "password": password, "repassword": repassword }),
+                };
+
+                const response = await fetch('/register', options);
+
+                if (response.ok) {
+                    const data = await response.text();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Register Successful!',
+                        showConfirmButton: false,
+                        timer: 1000,
+                        didClose: () => {
+                            window.location.replace(data);
+                        }
+                    });
+                } else if (response.status === 401) {
+                    const data = await response.text();
+                    throw Error(data);
+                } else {
+                    throw Error('Connection error');
+                }
+            } catch (err) {
+                console.error(err.message);
+                Notiflix.Report.failure('Error', err.message, 'Close');
+            }
+        };
+    </script>
+</body>
+
+</html>
