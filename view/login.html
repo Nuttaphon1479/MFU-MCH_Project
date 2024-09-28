@@ -35,7 +35,7 @@
 
 
     <script>
-        const formLogin = document.querySelector('#Login');
+        const formLogin = document.querySelector('#login');
         formLogin.onsubmit = async function (e) {
             e.preventDefault();
             // get login form
@@ -72,7 +72,11 @@
                             window.location.replace(data);
                         }
                     });
-                } else {
+                } else if (response.status == 400) {
+                    const data = await response.text();
+                    throw Error(data);
+                }
+                else {
                     throw Error('Connection error');
                 }
             } catch (err) {
