@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 const bcrypt = require("bcrypt");
 const session = require("express-session");
-const MySQLStore = require("express-mysql-session")(session);
+// const MySQLStore = require("express-mysql-session")(session);
 const bodyParser = require("body-parser");
 
 const app = express();
@@ -14,24 +14,21 @@ const port = 3000;
 // app.use(express.urlencoded({ extended: false}))
 
 // -------database connection--------
-const con = require("./config/db");
-const { name } = require("ejs");
+const db = require("./config/db");
+// const { name } = require("ejs");
 // const { check } = require("express-validator");
 
-const sessionStore = new MySQLStore(Options);
+// const sessionStore = new MySQLStore(Options);
 
 app.use("/public", express.static(path.join(__dirname, "public")));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
 app.use(
   session({
     cookie: { maxAge: 24 * 60 * 60 * 1000 },
     secret: "Todayistooearlytolearn",
     resave: false,
     saveUninitialized: true,
-    store: new sessionStore({
-      checkPeriod: 24 * 60 * 0 * 1000,
-    }),
   })
 );
 
@@ -40,18 +37,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ------------------- Login ------------------
-// app.post("/login", function (req, res) {
-//     const username = req.body.username;
-//     const password = req.body.password;
-
-//     if (username == "admin" && password == "1234") {
-//         res.send("Login success");
-//     }
-//     else {
-//         res.status(401).send("login failed");
-//     }
-//     // res.sendFile(path.join(__dirname, "view/login.html"));
-// });
 
 // ------------หน้า Login------------------
 app.get("/login", function (_req, res) {
@@ -60,52 +45,62 @@ app.get("/login", function (_req, res) {
 
 // ------------- ดึงข้อมูล Login -------------------
 app.post("/login", function (req, res) {
-  const { username, password } = req.body;
+  // const { username, password } = req.body;
+  const username = req.body.txtUsername;
+  const password = req.body.txtPassword;
   // const sql = "SELECT user_id, user_name FROM user WHERE user_name = ? AND password = ?";
   // SQL Query สำหรับค้นหาข้อมูลผู้ใช้ในฐานข้อมูล
-  const sql = "SELECT * FROM users WHERE user_name=?";
-  con.query(sql, [username], function (err, results) {
+  const sql = "SELECT * FROM users WHERE username = ?";
+  db.query(sql, [username], (err, results) => {
     if (err) {
       console.error(err);
       res.status(500).send("DB error");
       // ตรวจสอบว่ามีผลลัพธ์หรือไม่ (ชื่อผู้ใช้ถูกต้องหรือไม่)
-    } else if (results.length != 1) {
-      res.status(400).send("Wrong username ");
-    } else {
-      // เปรียบเทียบรหัสผ่านที่ส่งมาจากฟอร์มกับรหัสผ่านที่เก็บในฐานข้อมูล (ใช้ bcrypt)
-      bcrypt.compare(password, results[0].password, function (err, same) {
-        if (err) {
-          res.status(500).send("Password error");
-        } else {
-          if (same) {
-            // รหัสผ่านถูกต้อง เก็บข้อมูลลงใน session
-            res.session.name = results[0].name;
-            res.session.user_name = results[0].user_name;
-            res.session.user_id = results[0].user_id;
-            res.session.role = results[0].role;
-            res.send("/user/dashuser1");
-          } else {
-            res.status(400).send("Wrong password");
-          }
-        }
-      });
+    }
+    // ตรวจสอบว่ามีผู้ใช้หรือไม่
+    if (results.length === 0) {
+      return res.status(400).send("Username does not exist");
     }
 
-    // bcrypt.compare(password, results[0].password, function (err, same) {
-    //     if (err) {
-    //         return res.status(503).send("Authentication server error");
-    //     }
-    //     else if (same) {
-    //         //correct login send destination URL to client
-    //         res.status(200).send("/dashadmin");
-    //     }
-    //     else {
-    //         //wrong password
-    //         res.status(400).send("Wrong password");
-    //     }
-    // });
+    const user = results[0];
+
+    // เปรียบเทียบรหัสผ่านที่ส่งมาจากฟอร์มกับรหัสผ่านที่เก็บในฐานข้อมูล (ใช้ bcrypt)
+    bcrypt.compare(password, user.password, function (err, isMatch) {
+      if (err) {
+        res.status(500).send("Password error");
+      } else {
+        if (isMatch) {
+          // รหัสผ่านถูกต้อง เก็บข้อมูลลงใน session
+
+          req.session.username = user.username;
+          req.session.user_id = user.user_id;
+          req.session.email = user.email;
+          
+          console.log(req.session); // ตรวจสอบข้อมูลในเซสชัน
+          return res.redirect("/user/dashuser1");
+          // res.status(200).send("Login successful!");
+        } else {
+          res.status(400).send("Wrong password");
+        }
+      }
+    });
   });
 });
+//     bcrypt.compare(password, results[0].password, function (err, same) {
+//         if (err) {
+//             return res.status(503).send("Authentication server error");
+//         }
+//         else if (same) {
+//             //correct login send destination URL to client
+//             res.status(200).send("/dashadmin");
+//         }
+//         else {
+//             //wrong password
+//             res.status(400).send("Wrong password");
+//         }
+//     });
+//   });
+// });
 
 // --------------- เช็ค Password ----------------
 // app.get("/password/:pass", function (req, res) {
@@ -141,53 +136,56 @@ app.post("/login", function (req, res) {
 // });
 
 // Call
-app.get("/user", function (req, res) {
-  res.json({
-    user_id: req.session.user_id,
-    name: req.session.name,
-    user_name: req.session.user_name,
-    role: req.session.role,
-  });
-});
+// app.get("/user", function (req, res) {
+//   res.json({
+//     user_id: req.session.user_id,
+//     name: req.session.name,
+//     user_name: req.session.user_name,
+//     role: req.session.role,
+//   });
+// });
 
 // ------------หน้า Register---------------
 app.get("/register", function (_req, res) {
   res.sendFile(path.join(__dirname, "view/register.html"));
 });
 
-app.post("/register", function (req, res) {
-  const { username, email, password, repassword} = req.body;
-  if (password != repassword) {
-    return res.status(400).send("Password not match");
-  }
-  // ถ้าไม่มี username ซ้ำกัน ให้ทำการเข้ารหัสรหัสผ่าน (bcrypt)
-  bcrypt.hash(password, 10, function (err, hash) {
+app.post("/register", (req, res) => {
+  const { username, email, password } = req.body;
+
+  const checkUsernameQuery = "SELECT id FROM users WHERE username = ?";
+  db.query(checkUsernameQuery, [username], (err, results) => {
     if (err) {
-      return res.status(500).send("Hash error");
-    } else {
-      const findusername = "SELECT username FROM users WHERE username =?";
-      con.query(findusername, [username], function (err, results) {
-        if (err) {
-          console.error(err);
-          res.status(500).send("DB error");
-          // ถ้าพบว่ามี username ซ้ำกัน
-        } else if (results.length > 0) {
-          res.status(400).send("Username has already exist");
-        } else {
-          const sql =
-            "INSERT INTO users(name, user_name, password, role) VALUE(?,?,?, 'user_id')";
-          con.query(sql, [name, username, email, hash], function (err, results) {
-            if (err) {
-              console.error(err);
-              res.status(500).send("DB error");
-            } else {
-              // หลังจากสมัครสำเร็จให้ redirect ไปยังหน้า login
-              res.send("/login");
-            }
-          });
-        }
-      });
+      return res
+        .status(500)
+        .json({ success: false, message: "Database error" });
     }
+
+    if (results.length > 0) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Username already exists" });
+    }
+
+    bcrypt.hash(password, 10, (err, hash) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ success: false, message: "Hashing error" });
+      }
+
+      // Hash รหัสผ่านก่อนบันทึกลงฐานข้อมูล
+      const insertUserQuery =
+        "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+      db.query(insertUserQuery, [username, email, hash], (err) => {
+        if (err) {
+          return res
+            .status(500)
+            .json({ success: false, message: "Database error" });
+        }
+        res.json({ success: true, message: "User registered successfully" });
+      });
+    });
   });
 });
 
@@ -208,14 +206,37 @@ app.post("/register", function (req, res) {
 //     });
 // });
 
-// ------------หน้า DashUser1---------------
-app.get("/user/dashuser1", function (req, res) {
-  if (req.session.role == "user") {
-    res.sendFile(path.join(__dirname, "view/User/DashUser1.html"));
+// Middleware สำหรับการตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้วหรือยัง
+function isAuthenticated(req, res, next) {
+  if (req.session && req.session.user_id) {
+    return next();
   } else {
     res.redirect("/login");
   }
+}
+
+// Middleware สำหรับตรวจสอบ email ผู้ใช้
+function isAuthorized(email) {
+  return function (req, res, next) {
+    if (req.session.email === email) {
+      return next(); // ถ้า email ตรง ให้ไปที่เส้นทางถัดไป
+    } else {
+      res.status(403).send("Unauthorized"); // ถ้า email ไม่ตรง ส่งข้อความ Unauthorized
+    }
+  };
+}
+// ------------หน้า DashUser1---------------
+// app.get("/user/dashuser1", function (req, res) {
+//   if (req.session.role == "user") {
+//     res.sendFile(path.join(__dirname, "view/User/DashUser1.html"));
+//   } else {
+//     res.redirect("/login");
+//   }
+// });
+app.get("/user/dashuser1", isAuthenticated, function (req, res) {
+  res.sendFile(path.join(__dirname, "view/User/DashUser1.html"));
 });
+
 
 // ------------หน้า DashUser2---------------
 app.get("/user/dashuser2", function (req, res) {

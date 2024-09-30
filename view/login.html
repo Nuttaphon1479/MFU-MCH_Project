@@ -24,9 +24,9 @@
             <h1>
                 MFU_MCH
             </h1>
-            <form id="formLogin">
-                <input placeholder="Username" type="text" name="txtUsername">
-                <input placeholder="Password" type="password" name="txtPassword" required>
+            <form id="formLogin" action="/login" method="POST">
+                <input placeholder="username" type="text" name="txtUsername" required>
+                <input placeholder="password" type="password" name="txtPassword" required>
                 <button type="submit" class="btn btn-danger" id="btn_Login">เข้าสู่ระบบ</button>
             </form>
             <a href="/register">ลงทะเบียนเข้าใช้งาน</a>
@@ -35,7 +35,7 @@
 
 
     <script>
-        const formLogin = document.querySelector('#login');
+        const formLogin = document.querySelector('#formlogin');
         formLogin.onsubmit = async function (e) {
             e.preventDefault();
             // get login form
@@ -51,7 +51,7 @@
             //     return;
             // }
 
-            console.log(username, password);
+            // console.log(username, password);
             try {
                 const options = {
                     method: 'POST',
@@ -62,21 +62,19 @@
                 }
                 const response = await fetch('/login', options);
                 if (response.ok) {
-                    const data = await response.text();
+                    const data = await response.json();
                     Swal.fire({
                         icon: 'success',
                         title: 'Login Successful!',
                         showConfirmButton: false,
                         timer: 1000,
                         didClose: () => {
-                            window.location.replace(data);
+                            window.location.replace(redirectUrl);
                         }
                     });
-                } else if (response.status == 400) {
-                    const data = await response.text();
-                    throw Error(data);
                 }
                 else {
+                    const errorMessage = await response.text();
                     throw Error('Connection error');
                 }
             } catch (err) {
