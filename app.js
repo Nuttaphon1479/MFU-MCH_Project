@@ -8,17 +8,8 @@ const bodyParser = require("body-parser");
 const app = express();
 const port = 3000;
 
-// const dbConnection = require('./database');
-// const { body, validationResult } = require('express-validator');
-// const cookieSession = require('cookie-session');
-// app.use(express.urlencoded({ extended: false}))
-
 // -------database connection--------
 const db = require("./config/db");
-// const { name } = require("ejs");
-// const { check } = require("express-validator");
-
-// const sessionStore = new MySQLStore(Options);
 
 app.use("/public", express.static(path.join(__dirname, "public")));
 // app.use(express.json());
@@ -37,7 +28,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ------------------- Login ------------------
-
 // ------------หน้า Login------------------
 app.get("/login", function (_req, res) {
   res.sendFile(path.join(__dirname, "view/login.html"));
@@ -78,6 +68,7 @@ app.post("/login", function (req, res) {
           req.session.username = user.username;
           req.session.user_id = user.user_id;
           req.session.email = user.email;
+          req.session.role = user.role;
 
           console.log(req.session); // ตรวจสอบข้อมูลในเซสชัน
           return res.redirect("/user/dashuser1");
@@ -89,64 +80,6 @@ app.post("/login", function (req, res) {
     });
   });
 });
-//     bcrypt.compare(password, results[0].password, function (err, same) {
-//         if (err) {
-//             return res.status(503).send("Authentication server error");
-//         }
-//         else if (same) {
-//             //correct login send destination URL to client
-//             res.status(200).send("/dashadmin");
-//         }
-//         else {
-//             //wrong password
-//             res.status(400).send("Wrong password");
-//         }
-//     });
-//   });
-// });
-
-// --------------- เช็ค Password ----------------
-// app.get("/password/:pass", function (req, res) {
-//   // const username = req.params.username;
-//   const password = req.params.pass;
-//   const saltRounds = 10; //the cost of encrypting see https://github.com/ kelektiv / node.bcrypt.js#a - note - on - rounds
-
-//   bcrypt.hash(password, saltRounds, function (err, hash) {
-//     if (err) {
-//       return res.status(500).send("Hashing error");
-//     }
-// const sql = "INSERT INTO user (user_name, password) VALUES (?,?)";
-// con.query(sql, [username, hash], function (err, result) {
-//     if (err) {
-//         return res.status(500).send("Database insert error");
-//     }
-//     res.send("User registered successfully");
-// });
-// return hashed password, 60 characters
-// console.log(hash.length);
-// res.send(hash);
-//   });
-// });
-
-// ------------------ Logout ------------------
-// app.get('/logout', function (req, res) {
-//   req.session.destroy(function (err) {
-//       if (err) {
-//           return res.status(500).send('Session error');
-//       }
-//       res.redirect('/');
-//   })
-// });
-
-// Call
-// app.get("/user", function (req, res) {
-//   res.json({
-//     user_id: req.session.user_id,
-//     name: req.session.name,
-//     user_name: req.session.user_name,
-//     role: req.session.role,
-//   });
-// });
 
 // ------------หน้า Register---------------
 app.get("/register", function (_req, res) {
@@ -204,23 +137,6 @@ app.post("/register", (req, res) => {
   });
 });
 
-// ---------------------------Role User----------------------------------------
-// app.post("/login", function (req, res) {
-//     const username = req.body.username;
-//     const password = req.body.password;
-//     const sql = "SELECT id, username, role FROM user WHERE username = ? AND password = ? ";
-
-//     con.query(sql, [username, password], function (err, results) {
-//         if (err) {
-//             return res.status(500).send("Database server error");
-//         }
-//         if (results.length != 1) {
-//             return res.status(401).send("Wrong username or password");
-//         }
-//         res.send("Login successful");
-//     });
-// });
-
 // Middleware สำหรับการตรวจสอบว่าผู้ใช้เข้าสู่ระบบแล้วหรือยัง
 function isAuthenticated(req, res, next) {
   if (req.session && req.session.user_id) {
@@ -240,6 +156,20 @@ function isAuthorized(email) {
     }
   };
 }
+
+// Middleware สำหรับตรวจสอบ role
+function checkRole(allowedRoles) {
+  return function (req, res, next) {
+    if (req.session.role && allowedRoles.includes(req.session.role)) {
+      return next(); // ถ้า role อยู่ใน allowedRoles ให้ไปที่เส้นทางถัดไป
+    } else {
+      return res
+        .status(403)
+        .send("Unauthorized: You don't have access to this resource.");
+    }
+  };
+}
+
 // ------------หน้า DashUser1---------------
 // app.get("/user/dashuser1", function (req, res) {
 //   if (req.session.role == "user") {
@@ -248,46 +178,49 @@ function isAuthorized(email) {
 //     res.redirect("/login");
 //   }
 // });
-app.get("/user/dashuser1", isAuthenticated, function (req, res) {
-  res.sendFile(path.join(__dirname, "view/User/DashUser1.html"));
-});
+app.get(
+  "/user/dashuser1",
+  isAuthenticated,
+  checkRole(["user"]),
+  function (_req, res) {
+    res.sendFile(path.join(__dirname, "view/User/DashUser1.html"));
+  }
+);
 
 // ------------หน้า DashUser2---------------
-app.get("/user/dashuser2", function (req, res) {
-  if (req.session.role == "user") {
+app.get(
+  "/dashuser2",
+  isAuthenticated,
+  checkRole(["user"]),
+  function (_req, res) {
     res.sendFile(path.join(__dirname, "view/User/DashUser2.html"));
-  } else {
-    res.redirect("/login");
   }
-});
+);
 
 // ------------หน้า StatusUser---------------
-app.get("/user/statususer", function (req, res) {
-  if (req.session.role == "user") {
+app.get(
+  "/statususer",
+  isAuthenticated,
+  checkRole(["user"]),
+  function (_req, res) {
     res.sendFile(path.join(__dirname, "view/User/StatusUser.html"));
-  } else {
-    res.redirect("/login");
   }
-});
+);
 
 // ------------หน้า ReportUser---------------
-app.get("/user/reportuser", function (req, res) {
-  if (req.session.role == "user") {
+app.get(
+  "/reportuser",
+  isAuthenticated,
+  checkRole(["user"]),
+  function (_req, res) {
     res.sendFile(path.join(__dirname, "view/User/ReportUser.html"));
-  } else {
-    res.redirect("/login");
   }
-});
+);
 
 // ---------------------------Role Admin----------------------------------------
 // ------------หน้า DashAdmin---------------
 app.get("/dashadmin", function (_req, res) {
-  if (req.session.role == "admin") {
-    res.sendFile(path.join(__dirname, "view/Admin/DashAdmin.html"));
-  } else {
-    res.redirect("/login");
-  }
-
+  res.sendFile(path.join(__dirname, "view/Admin/DashAdmin.html"));
   // const sql = "SELECT * FROM ระบบงานหลัก";
   // con.query(sql, function (err, results) {
   //     if (err) {
