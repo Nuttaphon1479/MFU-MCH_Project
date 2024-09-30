@@ -54,9 +54,12 @@ app.post("/login", function (req, res) {
   db.query(sql, [username], (err, results) => {
     if (err) {
       console.error(err);
-      res.status(500).send("DB error");
+      return res.status(500).send("DB error");
       // ตรวจสอบว่ามีผลลัพธ์หรือไม่ (ชื่อผู้ใช้ถูกต้องหรือไม่)
     }
+
+    console.log("Results: ", results); // ตรวจสอบผลลัพธ์จากฐานข้อมูล
+
     // ตรวจสอบว่ามีผู้ใช้หรือไม่
     if (results.length === 0) {
       return res.status(400).send("Username does not exist");
@@ -67,7 +70,7 @@ app.post("/login", function (req, res) {
     // เปรียบเทียบรหัสผ่านที่ส่งมาจากฟอร์มกับรหัสผ่านที่เก็บในฐานข้อมูล (ใช้ bcrypt)
     bcrypt.compare(password, user.password, function (err, isMatch) {
       if (err) {
-        res.status(500).send("Password error");
+        return res.status(500).send("Password error");
       } else {
         if (isMatch) {
           // รหัสผ่านถูกต้อง เก็บข้อมูลลงใน session
@@ -75,7 +78,7 @@ app.post("/login", function (req, res) {
           req.session.username = user.username;
           req.session.user_id = user.user_id;
           req.session.email = user.email;
-          
+
           console.log(req.session); // ตรวจสอบข้อมูลในเซสชัน
           return res.redirect("/user/dashuser1");
           // res.status(200).send("Login successful!");
@@ -153,9 +156,17 @@ app.get("/register", function (_req, res) {
 app.post("/register", (req, res) => {
   const { username, email, password } = req.body;
 
-  const checkUsernameQuery = "SELECT id FROM users WHERE username = ?";
+  // ตรวจสอบว่าค่าที่ได้รับจากฟอร์มไม่ว่าง
+  if (!username || !email || !password) {
+    return res
+      .status(400)
+      .json({ success: false, message: "All fields are required" });
+  }
+
+  const checkUsernameQuery = "SELECT user_id FROM users WHERE username = ?";
   db.query(checkUsernameQuery, [username], (err, results) => {
     if (err) {
+      console.error("Database error in username check:", err); // เพิ่มการ log ข้อความ error
       return res
         .status(500)
         .json({ success: false, message: "Database error" });
@@ -167,8 +178,10 @@ app.post("/register", (req, res) => {
         .json({ success: false, message: "Username already exists" });
     }
 
+    // Hash รหัสผ่านก่อนบันทึกลงฐานข้อมูล
     bcrypt.hash(password, 10, (err, hash) => {
       if (err) {
+        console.error("Hashing error:", err); // เพิ่มการ log ข้อความ error
         return res
           .status(500)
           .json({ success: false, message: "Hashing error" });
@@ -179,10 +192,12 @@ app.post("/register", (req, res) => {
         "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
       db.query(insertUserQuery, [username, email, hash], (err) => {
         if (err) {
+          console.error("Database error during registration:", err); // เพิ่มการ log ข้อความ error
           return res
             .status(500)
             .json({ success: false, message: "Database error" });
         }
+        // ส่งผลลัพธ์การลงทะเบียนสำเร็จ
         res.json({ success: true, message: "User registered successfully" });
       });
     });
@@ -236,7 +251,6 @@ function isAuthorized(email) {
 app.get("/user/dashuser1", isAuthenticated, function (req, res) {
   res.sendFile(path.join(__dirname, "view/User/DashUser1.html"));
 });
-
 
 // ------------หน้า DashUser2---------------
 app.get("/user/dashuser2", function (req, res) {
